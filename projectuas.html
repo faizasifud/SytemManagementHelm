@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Pengambilan Helm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f7f9fc;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #3498db;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 28px;
+        }
+        
+        .login-container, .main-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        h2 {
+            color: #2980b9;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f1f1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background-color: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>SISTEM MANAJEMEN PENGAMBILAN HELM</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Login Form -->
+        <div id="login-container" class="login-container">
+            <h2>Login Admin</h2>
+            <div id="login-error" class="alert alert-danger hidden"></div>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Masukkan password">
+            </div>
+            <button id="login-btn">Login</button>
+        </div>
+        
+        <!-- Main Application Container -->
+        <div id="main-container" class="main-container hidden">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="tambah-data">Tambah Data</button>
+                <button class="tab-button" data-tab="lihat-data">Lihat Data</button>
+                <button class="tab-button" data-tab="verifikasi">Verifikasi Pengambilan</button>
+                <button class="tab-button" data-tab="ekspor">Ekspor Data</button>
+                <button id="logout-btn" class="tab-button" style="margin-left: auto; background-color: #e74c3c; color: white;">Logout</button>
+            </div>
+            
+            <!-- Tambah Data Tab -->
+            <div id="tambah-data" class="tab-content active">
+                <h2>Tambah Data Mahasiswa dan Helm</h2>
+                <div id="tambah-success" class="alert alert-success hidden"></div>
+                <div class="form-group">
+                    <label for="nama">Nama Mahasiswa:</label>
+                    <input type="text" id="nama" placeholder="Masukkan nama mahasiswa">
+                </div>
+                <div class="form-group">
+                    <label for="nim">NIM:</label>
+                    <input type="text" id="nim" placeholder="Masukkan NIM">
+                </div>
+                <div class="form-group">
+                    <label for="jenis-helm">Jenis Helm:</label>
+                    <input type="text" id="jenis-helm" placeholder="Masukkan jenis helm">
+                </div>
+                <button id="tambah-btn" class="btn-success">Tambah Data</button>
+            </div>
+            
+            <!-- Lihat Data Tab -->
+            <div id="lihat-data" class="tab-content">
+                <h2>Data Helm Mahasiswa</h2>
+                <div id="data-empty" class="alert alert-danger hidden">Tidak ada data helm yang tersimpan.</div>
+                <table id="data-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Nama</th>
+                            <th>NIM</th>
+                            <th>Jenis Helm</th>
+                            <th>Kode Unik</th>
+                            <th>Tanggal Penitipan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-body">
+                        <!-- Data will be dynamically populated here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Verifikasi Pengambilan Tab -->
+            <div id="verifikasi" class="tab-content">
+                <h2>Verifikasi Pengambilan Helm</h2>
+                <div id="verifikasi-result" class="alert hidden"></div>
+                <div class="form-group">
+                    <label for="kode-unik">Kode Unik:</label>
+                    <input type="text" id="kode-unik" placeholder="Masukkan kode unik helm">
+                </div>
+                <button id="verifikasi-btn">Verifikasi Pengambilan</button>
+                
+                <div id="detail-helm" class="hidden" style="margin-top: 20px;">
+                    <h3>Detail Helm</h3>
+                    <div id="detail-content" style="margin-top: 15px;">
+                        <!-- Detail will be populated here -->
+                    </div>
+                    <button id="konfirmasi-ambil" class="btn-success" style="margin-top: 15px;">Konfirmasi Pengambilan</button>
+                </div>
+            </div>
+            
+            <!-- Ekspor Data Tab -->
+            <div id="ekspor" class="tab-content">
+                <h2>Ekspor Data</h2>
+                <div id="ekspor-result" class="alert hidden"></div>
+                <p>Pilih format ekspor data:</p>
+                <div class="export-buttons">
+                    <button id="export-txt" class="btn-success">Ekspor ke TXT</button>
+                    <button id="export-csv" class="btn-success">Ekspor ke CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        const adminUsername = "admin";
+        const adminPassword = "admin123";
+        let dataHelm = [];
+        let loginAttempts = 0;
+        
+        // DOM elements
+        const loginContainer = document.getElementById('login-container');
+        const mainContainer = document.getElementById('main-container');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const tambahBtn = document.getElementById('tambah-btn');
+        const verifikasiBtn = document.getElementById('verifikasi-btn');
+        const konfirmasiAmbilBtn = document.getElementById('konfirmasi-ambil');
+        const exportTxtBtn = document.getElementById('export-txt');
+        const exportCsvBtn = document.getElementById('export-csv');
+        
+        // Tab functionality
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                if (!tabId) return; // Skip for logout button
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                button.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Login functionality
+        loginBtn.addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginError = document.getElementById('login-error');
+            
+            if (username === adminUsername && password === adminPassword) {
+                loginContainer.classList.add('hidden');
+                mainContainer.classList.remove('hidden');
+                loginError.classList.add('hidden');
+                
+                // Reset form fields
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                
+                // Load data from localStorage if exists
+                loadDataFromStorage();
+                updateDataTable();
+            } else {
+                loginAttempts++;
+                if (loginAttempts >= 3) {
+                    loginError.textContent = "Anda telah melebihi batas percobaan login. Refresh halaman untuk mencoba lagi.";
+                    loginBtn.disabled = true;
+                } else {
+                    loginError.textContent = `Username atau password salah! Sisa percobaan: ${3 - loginAttempts}`;
+                }
+                loginError.classList.remove('hidden');
+            }
+        });
+        
+        // Logout functionality
+        logoutBtn.addEventListener('click', () => {
+            mainContainer.classList.add('hidden');
+            loginContainer.classList.remove('hidden');
+            loginAttempts = 0;
+            loginBtn.disabled = false;
+        });
+        
+        // Generate random code
+        function generateRandomCode() {
+            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            let code = "";
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+        
+        // Get current date
+        function getCurrentDate() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
+        // Get current date time for file names
+        function getCurrentTimeForFilename() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            return `${year}${month}${day}_${hours}${minutes}${seconds}`;
+        }
+        
+        // Save data to localStorage
+        function saveDataToStorage() {
+            localStorage.setItem('helmData', JSON.stringify(dataHelm));
+        }
+        
+        // Load data from localStorage
+        function loadDataFromStorage() {
+            const storedData = localStorage.getItem('helmData');
+            if (storedData) {
+                dataHelm = JSON.parse(storedData);
+            }
+        }
+        
+        // Update data table
+        function updateDataTable() {
+            const dataBody = document.getElementById('data-body');
+            const dataEmpty = document.getElementById('data-empty');
+            
+            if (dataHelm.length === 0) {
+                dataEmpty.classList.remove('hidden');
+                dataBody.innerHTML = '';
+                return;
+            }
+            
+            dataEmpty.classList.add('hidden');
+            dataBody.innerHTML = '';
+            
+            dataHelm.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.nama}</td>
+                    <td>${item.nim}</td>
+                    <td>${item.jenisHelm}</td>
+                    <td>${item.kodeUnik}</td>
+                    <td>${item.tanggalPenitipan}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-danger delete-btn" data-index="${index}">Hapus</button>
+                            <button class="btn-success regen-btn" data-index="${index}">Regenerate Kode</button>
+                        </div>
+                    </td>
+                `;
+                dataBody.appendChild(row);
+            });
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.getAttribute('data-index');
+                    dataHelm.splice(index, 1);
+                    saveDataToStorage();
+                    updateDataTable();
+                });
+            });
+            
+            // Add event listeners to regenerate code buttons
+            document.querySelectorAll('.regen-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.getAttribute('data-index');
+                    dataHelm[index].kodeUnik = generateRandomCode();
+                    saveDataToStorage();
+                    updateDataTable();
+                });
+            });
+        }
+        
+        // Add data functionality
+        tambahBtn.addEventListener('click', () => {
+            const nama = document.getElementById('nama').value;
+            const nim = document.getElementById('nim').value;
+            const jenisHelm = document.getElementById('jenis-helm').value;
+            const tambahSuccess = document.getElementById('tambah-success');
+            
+            if (!nama || !nim || !jenisHelm) {
+                tambahSuccess.textContent = "Semua field harus diisi!";
+                tambahSuccess.classList.remove('hidden', 'alert-success');
+                tambahSuccess.classList.add('alert-danger');
+                return;
+            }
+            
+            const newData = {
+                nama,
+                nim,
+                jenisHelm,
+                kodeUnik: generateRandomCode(),
+                tanggalPenitipan: getCurrentDate(),
+                statusPengambilan: false
+            };
+            
+            dataHelm.push(newData);
+            saveDataToStorage();
+            
+            // Clear form
+            document.getElementById('nama').value = '';
+            document.getElementById('nim').value = '';
+            document.getElementById('jenis-helm').value = '';
+            
+            // Show success message
+            tambahSuccess.textContent = `Data berhasil ditambahkan! Kode Unik: ${newData.kodeUnik}`;
+            tambahSuccess.classList.remove('hidden', 'alert-danger');
+            tambahSuccess.classList.add('alert-success');
+            
+            // Update data table
+            updateDataTable();
+        });
+        
+        // Verifikasi functionality
+        verifikasiBtn.addEventListener('click', () => {
+            const kodeUnik = document.getElementById('kode-unik').value.toUpperCase();
+            const verifikasiResult = document.getElementById('verifikasi-result');
+            const detailHelm = document.getElementById('detail-helm');
+            const detailContent = document.getElementById('detail-content');
+            
+            if (!kodeUnik) {
+                verifikasiResult.textContent = "Masukkan kode unik terlebih dahulu!";
+                verifikasiResult.classList.remove('hidden', 'alert-success');
+                verifikasiResult.classList.add('alert-danger');
+                detailHelm.classList.add('hidden');
+                return;
+            }
+            
+            const helmIndex = dataHelm.findIndex(item => item.kodeUnik === kodeUnik);
+            
+            if (helmIndex === -1) {
+                verifikasiResult.textContent = "Kode unik tidak valid atau tidak ditemukan!";
+                verifikasiResult.classList.remove('hidden', 'alert-success');
+                verifikasiResult.classList.add('alert-danger');
+                detailHelm.classList.add('hidden');
+                return;
+            }
+            
+            const helm = dataHelm[helmIndex];
+            
+            // Show detail
+            detailContent.innerHTML = `
+                <p><strong>Nama Mahasiswa:</strong> ${helm.nama}</p>
+                <p><strong>NIM:</strong> ${helm.nim}</p>
+                <p><strong>Jenis Helm:</strong> ${helm.jenisHelm}</p>
+                <p><strong>Tanggal Penitipan:</strong> ${helm.tanggalPenitipan}</p>
+                <p><strong>Tanggal Pengambilan:</strong> ${getCurrentDate()}</p>
+            `;
+            
+            // Show detail element and store index for konfirmasi button
+            detailHelm.classList.remove('hidden');
+            konfirmasiAmbilBtn.setAttribute('data-index', helmIndex);
+            
+            verifikasiResult.textContent = "Verifikasi berhasil! Silahkan konfirmasi pengambilan.";
+            verifikasiResult.classList.remove('hidden', 'alert-danger');
+            verifikasiResult.classList.add('alert-success');
+        });
+        
+        // Konfirmasi Ambil functionality
+        konfirmasiAmbilBtn.addEventListener('click', () => {
+            const index = konfirmasiAmbilBtn.getAttribute('data-index');
+            const helm = dataHelm[index];
+            const verifikasiResult = document.getElementById('verifikasi-result');
+            const detailHelm = document.getElementById('detail-helm');
+            
+            // Remove data
+            dataHelm.splice(index, 1);
+            saveDataToStorage();
+            
+            // Update data table
+            updateDataTable();
+            
+            // Show success message
+            verifikasiResult.textContent = `Helm milik ${helm.nama} berhasil diambil dan data telah dihapus dari sistem.`;
+            verifikasiResult.classList.remove('hidden', 'alert-danger');
+            verifikasiResult.classList.add('alert-success');
+            
+            // Clear form and hide detail
+            document.getElementById('kode-unik').value = '';
+            detailHelm.classList.add('hidden');
+        });
+        
+        // Export to TXT functionality
+        exportTxtBtn.addEventListener('click', () => {
+            const eksporResult = document.getElementById('ekspor-result');
+            
+            if (dataHelm.length === 0) {
+                eksporResult.textContent = "Tidak ada data helm yang tersimpan untuk diekspor.";
+                eksporResult.classList.remove('hidden', 'alert-success');
+                eksporResult.classList.add('alert-danger');
+                return;
+            }
+            
+            // Generate file content
+            let content = "DATA HELM MAHASISWA - Diekspor pada " + getCurrentDate() + "\n\n";
+            content += "+------+----------------------+---------------+---------------+----------------+--------------+\n";
+            content += "| No   | Nama                 | NIM           | Jenis Helm    | Kode Unik      | Tanggal      |\n";
+            content += "+------+----------------------+---------------+---------------+----------------+--------------+\n";
+            
+            dataHelm.forEach((item, index) => {
+                content += `| ${(index + 1).toString().padEnd(4)} | ${item.nama.padEnd(20)} | ${item.nim.padEnd(13)} | ${item.jenisHelm.padEnd(13)} | ${item.kodeUnik.padEnd(14)} | ${item.tanggalPenitipan.padEnd(12)} |\n`;
+            });
+            
+            content += "+------+----------------------+---------------+---------------+----------------+--------------+\n";
+            
+            // Create and download file
+            const filename = "data_helm_" + getCurrentTimeForFilename() + ".txt";
+            downloadFile(content, filename, 'text/plain');
+            
+            eksporResult.textContent = `Data berhasil diekspor ke file ${filename}`;
+            eksporResult.classList.remove('hidden', 'alert-danger');
+            eksporResult.classList.add('alert-success');
+        });
+        
+        // Export to CSV functionality
+        exportCsvBtn.addEventListener('click', () => {
+            const eksporResult = document.getElementById('ekspor-result');
+            
+            if (dataHelm.length === 0) {
+                eksporResult.textContent = "Tidak ada data helm yang tersimpan untuk diekspor.";
+                eksporResult.classList.remove('hidden', 'alert-success');
+                eksporResult.classList.add('alert-danger');
+                return;
+            }
+            
+            // Generate CSV content
+            let content = "No,Nama,NIM,Jenis Helm,Kode Unik,Tanggal Penitipan\n";
+            
+            dataHelm.forEach((item, index) => {
+                content += `${index + 1},${item.nama},${item.nim},${item.jenisHelm},${item.kodeUnik},${item.tanggalPenitipan}\n`;
+            });
+            
+            // Create and download file
+            const filename = "data_helm_" + getCurrentTimeForFilename() + ".csv";
+            downloadFile(content, filename, 'text/csv');
+            
+            eksporResult.textContent = `Data berhasil diekspor ke file ${filename}`;
+            eksporResult.classList.remove('hidden', 'alert-danger');
+            eksporResult.classList.add('alert-success');
+        });
+        
+        // Helper function to download file
+        function downloadFile(content, filename, contentType) {
+            const a = document.createElement('a');
+            const file = new Blob([content], {type: contentType});
+            a.href = URL.createObjectURL(file);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    </script>
+</body>
+</html>
